@@ -25,6 +25,7 @@ module Data.Generics.Product
 
     -- *Subtype relationships
   , Subtype  (..)
+  , Method  (..)
   ) where
 
 import Data.Generics.Product.Any

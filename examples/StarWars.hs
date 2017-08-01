@@ -46,7 +46,7 @@ luke = Human
 r2d2 :: Droid
 r2d2 = Droid
   { name            = "R2-D2"
-  , friends         = [upcast luke]
+  , friends         = [upcast @'Label luke]
   , appearsIn       = [NEWHOPE, EMPIRE, JEDI]
   , primaryFunction = "repair ships"
   }
@@ -54,7 +54,7 @@ r2d2 = Droid
 c3po :: Droid
 c3po = Droid
   { name            = "C3PO"
-  , friends         = [upcast r2d2, upcast luke]
+  , friends         = [upcast @'Label r2d2, upcast @'Label luke]
   , appearsIn       = [NEWHOPE, EMPIRE, JEDI]
   , primaryFunction = "protocol and human relations"
   }
@@ -64,7 +64,7 @@ getName = getField @"name"
 
 -- upcast :: Subtype a b => a -> b
 characters :: [Character]
-characters = [upcast r2d2, upcast luke, upcast c3po]
+characters = [upcast @'Label r2d2, upcast @'Label luke, upcast @'Label c3po]
 
 names :: [String]
 names = map getName characters
