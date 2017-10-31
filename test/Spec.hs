@@ -41,9 +41,14 @@ type Lens' s a = forall f. Functor f => (a -> f a) -> s -> f s
 type Traversal' s a = forall f. Applicative f => (a -> f a) -> s -> f s
 
 newtype L s a = L (Lens' s a)
+newtype T s a = T (Traversal' s a)
 
 intTraversalManual :: Traversal' Record3 Int
-intTraversalManual = types
+intTraversalManual f' (MkRecord3 a b c d e f)
+  = MkRecord3 <$> f' a <*> f' b <*> pure c <*> f' d <*> pure e <*> f' f
+
+intTraversalDerived :: Traversal' Record3 Int
+intTraversalDerived = types
 
 fieldALensManual :: Lens' Record Int
 fieldALensManual f (MkRecord a b) = (\a' -> MkRecord a' b) <$> f a
@@ -69,6 +74,9 @@ typedP = L fieldALensManual === L (typed @Int)
 
 posP :: Proof
 posP = L fieldALensManual === L (position @1)
+
+--typedTraversalP :: Proof
+--typedTraversalP = T intTraversalManual === T (types @Int)
 
 subtypeP :: Proof
 subtypeP = L subtypeLensManual === L super
