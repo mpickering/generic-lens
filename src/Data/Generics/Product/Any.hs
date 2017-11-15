@@ -69,7 +69,7 @@ class HasAny (sel :: k) a s | s sel k -> a where
 instance HasPosition i a s => HasAny i a s where
   the = position @i
 
-instance HasField field a s => HasAny field a s where
+instance HasField field s s a a => HasAny field a s where
   the = field @field
 
 instance HasType a s => HasAny a a s where

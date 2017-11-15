@@ -1,3 +1,4 @@
+{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE FlexibleInstances      #-}
@@ -44,11 +45,11 @@ instance GProductHasField field l r l' r' a b (HasTotalFieldP field l)
 
   gfield = gproductField @field @_ @_ @_ @_ @_ @_ @(HasTotalFieldP field l)
 
--- TODO:
---instance (GHasField field l l' a b, GHasField field r r' a b)
---      =>  GHasField field (l :+: r) (l' :+: r') a b where
---
---  gfield = combine (gfield @field @l) (gfield @field @r)
+instance (GHasField field r r a a, GHasField field l l a a, GHasField field l l' a b, GHasField field r r' a b)
+      =>  GHasField field (l :+: r) (l' :+: r') a b where
+
+    gfield f (L1 s) = fmap (\a -> L1 (set (gfield @field) a s)) (f (s ^. gfield @field))
+    gfield f (R1 t) = fmap (\a -> R1 (set (gfield @field) a t)) (f (t ^. gfield @field))
 
 instance GHasField field (K1 R a) (K1 R b) a b where
   gfield f (K1 x) = fmap K1 (f x)
