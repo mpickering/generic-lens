@@ -23,7 +23,10 @@ import GHC.Generics          ((:*:)(..), (:+:)(..), Generic(..), M1(..), Rep)
 
 -- | Type alias for lens
 type Lens' s a
-  = forall f. Functor f => (a -> f a) -> s -> f s
+  = Lens s s a a
+
+type Lens s t a b
+  = forall f. Functor f => (a -> f b) -> s -> f t
 
 -- | Type alias for prism
 type Prism' s a
@@ -31,6 +34,9 @@ type Prism' s a
 
 type Iso' s a
   = forall p f. (Profunctor p, Functor f) => p a (f a) -> p s (f s)
+
+type Iso s t a b
+  = forall p f. (Profunctor p, Functor f) => p a (f b) -> p s (f t)
 
 -- | Getting
 (^.) :: s -> ((a -> Const a a) -> s -> Const a s) -> a
@@ -43,12 +49,12 @@ set l b
   = runIdentity . l (\_ -> Identity b)
 
 -- | Lens focusing on the first element of a product
-first :: Lens' ((a :*: b) x) (a x)
+first :: Lens ((a :*: b) x) ((a' :*: b) x) (a x) (a' x)
 first f (a :*: b)
   = fmap (:*: b) (f a)
 
 -- | Lens focusing on the second element of a product
-second :: Lens' ((a :*: b) x) (b x)
+second :: Lens ((a :*: b) x) ((a :*: b') x) (b x) (b' x)
 second f (a :*: b)
   = fmap (a :*:) (f b)
 
@@ -70,19 +76,20 @@ prism :: (a -> s) -> (s -> Either s a) -> Prism' s a
 prism bt seta = dimap seta (either pure (fmap bt)) . right'
 
 -- | A type and its generic representation are isomorphic
-repIso :: Generic a => Iso' a (Rep a x)
+repIso :: (Generic a, Generic b) => Iso a b (Rep a x) (Rep b x)
 repIso = dimap from (fmap to)
 
 -- | 'M1' is just a wrapper around `f p`
-mIso :: Iso' (M1 i c f p) (f p)
+--mIso :: Iso' (M1 i c f p) (f p)
+mIso :: Iso (M1 i c f p) (M1 i c g p) (f p) (g p)
 mIso = dimap unM1 (fmap M1)
 
 -- These are specialised versions of the Isos above. On GHC 8.0.2, having
 -- these functions eta-expanded allows the optimiser to inline these functions.
-mLens :: Lens' (M1 i c f p) (f p)
+mLens :: Lens (M1 i c f p) (M1 i c g p) (f p) (g p)
 mLens f s = mIso f s
 
-repLens :: Generic a => Lens' a (Rep a x)
+repLens :: (Generic a, Generic b) => Lens a b (Rep a x) (Rep b x)
 repLens f s = repIso f s
 
 sumIso :: Iso' ((a :+: b) x) (Either (a x) (b x))
