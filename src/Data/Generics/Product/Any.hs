@@ -6,6 +6,7 @@
 {-# LANGUAGE PolyKinds              #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 -----------------------------------------------------------------------------
@@ -52,7 +53,7 @@ import Data.Generics.Product.Typed
 --  @
 
 -- |Records that have generic lenses.
-class HasAny (sel :: k) a s | s sel k -> a where
+class HasAny (sel :: k) s t a b | s sel k -> a, s sel k b -> t where
   -- |A lens that focuses on a part of a product as identified by some
   --  selector. Currently supported selectors are field names, positions and
   --  unique types. Compatible with the lens package's 'Control.Lens.Lens'
@@ -64,13 +65,13 @@ class HasAny (sel :: k) a s | s sel k -> a where
   --  "Tunyasz"
   --  >>> human ^. the @3
   --  "London"
-  the :: Lens' s a
+  the :: Lens s t a b
 
-instance HasPosition i s s a a => HasAny i a s where
+instance HasPosition i s t a b => HasAny i s t a b where
   the = position @i
 
-instance HasField field s s a a => HasAny field a s where
+instance HasField field s t a b => HasAny field s t a b where
   the = field @field
 
-instance HasType a s => HasAny a a s where
+instance (HasType a s, t ~ s, a ~ b) => HasAny a s t a b where
   the = typed @a
