@@ -81,8 +81,7 @@ instance  -- see Note [Changing type parameters]
   , GHasField' field (Rep s) a
   , GHasField' field (Rep s') a'
   , GHasField field (Rep s) (Rep t) a b
-  , ix ~ IndexOf a'
-  , '(t', b') ~ If (IsParam a') '(Change s' ix b, P ix b) '(s', b)
+  , '(t', b') ~ If (IsParam a') '(Change s' (IndexOf a') b, P (IndexOf a') b) '(s', b)
   , t ~ UnProxied t'
   , ErrorUnless field s (HasTotalFieldP field (Rep s))
   ) => HasField field s t a b where
