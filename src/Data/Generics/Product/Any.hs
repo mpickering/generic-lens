@@ -66,7 +66,7 @@ class HasAny (sel :: k) a s | s sel k -> a where
   --  "London"
   the :: Lens' s a
 
-instance HasPosition i a s => HasAny i a s where
+instance HasPosition i s s a a => HasAny i a s where
   the = position @i
 
 instance HasField field s s a a => HasAny field a s where

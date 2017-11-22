@@ -72,8 +72,12 @@ subtypeLensGeneric = super
 typeChangingGeneric :: Lens (Record3 a) (Record3 b) a b
 typeChangingGeneric = field @"fieldA"
 
+typeChangingGenericPos :: Lens (Record3 a) (Record3 b) a b
+typeChangingGenericPos = position @1
+
 inspect $ 'fieldALensManual === 'fieldALensName
 inspect $ 'fieldALensManual === 'fieldALensType
 inspect $ 'fieldALensManual === 'fieldALensPos
 inspect $ 'subtypeLensManual === 'subtypeLensGeneric
 inspect $ 'typeChangingManual === 'typeChangingGeneric
+--inspect $ 'typeChangingManual === 'typeChangingGenericPos
