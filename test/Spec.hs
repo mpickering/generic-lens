@@ -51,7 +51,12 @@ type Traversal' s a = forall f. Applicative f => (a -> f a) -> s -> f s
 newtype L s a = L (Lens' s a)
 
 intTraversalManual :: Traversal' Record3 Int
-intTraversalManual = types
+intTraversalManual f (MkRecord3 a b c d e f') =
+    (\a1 a2 a3 a4 -> MkRecord3 a1 a2 c a3 e a4) <$> f a <*> f b <*> f d <*> f f'
+
+intTraversalDerived :: Traversal' Record3 Int
+intTraversalDerived = types
+
 
 intTraversalDerived3 :: Traversal' (Record4 Int) Int
 intTraversalDerived3 = genericTraverse
@@ -88,3 +93,4 @@ inspect $ 'fieldALensManual === 'fieldALensName
 inspect $ 'fieldALensManual === 'fieldALensType
 inspect $ 'fieldALensManual === 'fieldALensPos
 inspect $ 'subtypeLensManual === 'subtypeLensGeneric
+inspect $ 'intTraversalManual === 'intTraversalDerived
