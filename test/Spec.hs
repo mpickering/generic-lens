@@ -14,6 +14,8 @@ module Main where
 
 import GHC.Generics
 import Data.Generics.Product
+import Data.Generics.Product.Boggle
+import Data.Generics.Product.Types
 import Test.Inspection
 
 main :: IO ()
@@ -37,6 +39,11 @@ data Record3 = MkRecord3
   , fieldF :: Int
   } deriving Generic
 
+data Record4 a = MkRecord4
+  { fieldA :: a
+  , fieldB :: a
+  } deriving (Generic1)
+
 type Lens' s a = forall f. Functor f => (a -> f a) -> s -> f s
 
 type Traversal' s a = forall f. Applicative f => (a -> f a) -> s -> f s
@@ -45,6 +52,9 @@ newtype L s a = L (Lens' s a)
 
 intTraversalManual :: Traversal' Record3 Int
 intTraversalManual = types
+
+intTraversalDerived3 :: Traversal' (Record4 Int) Int
+intTraversalDerived3 = genericTraverse
 
 fieldALensManual :: Lens' Record Int
 fieldALensManual f (MkRecord a b) = (\a' -> MkRecord a' b) <$> f a
