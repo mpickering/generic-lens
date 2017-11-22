@@ -32,6 +32,7 @@ module Data.Generics.Product.Typed
 
 import Data.Generics.Internal.Families
 import Data.Generics.Internal.Lens
+import Data.Generics.Internal.Void
 import Data.Generics.Product.Internal.Typed
 
 import Data.Kind    (Constraint, Type)
@@ -84,6 +85,10 @@ instance
   ) => HasType a s where
 
   typed = ravel (repLens . gtyped)
+
+-- See Note [Uncluttering type signatures]
+instance {-# OVERLAPPING #-} HasType a Void where
+  typed = undefined
 
 type family ErrorUnlessOne (a :: Type) (s :: Type) (count :: Count) :: Constraint where
   ErrorUnlessOne a s 'None

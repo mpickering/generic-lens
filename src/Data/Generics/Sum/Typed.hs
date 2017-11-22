@@ -36,6 +36,7 @@ import Data.Generics.Sum.Internal.Typed
 
 import Data.Generics.Internal.Families
 import Data.Generics.Internal.Lens
+import Data.Generics.Internal.Void
 
 --  $example
 --  @
@@ -99,6 +100,16 @@ instance
     = to . ginjectTyped
   projectTyped
     = either (const Nothing) Just . gprojectTyped . from
+
+-- See Note [Uncluttering type signatures]
+instance {-# OVERLAPPING #-} AsType a Void where
+  _Typed = undefined
+  injectTyped = undefined
+  projectTyped = undefined
+instance {-# OVERLAPPING #-} AsType Void a where
+  _Typed = undefined
+  injectTyped = undefined
+  projectTyped = undefined
 
 type family ErrorUnlessOne (a :: Type) (s :: Type) (count :: Count) :: Constraint where
   ErrorUnlessOne a s 'None

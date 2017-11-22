@@ -32,6 +32,7 @@ module Data.Generics.Sum.Constructors
 
 import Data.Generics.Internal.Families
 import Data.Generics.Internal.Lens
+import Data.Generics.Internal.Void
 import Data.Generics.Sum.Internal.Constructors
 
 import Data.Kind    (Constraint, Type)
@@ -92,6 +93,10 @@ instance
   ) => AsConstructor ctor a s where
 
   _Ctor = repIso . _GCtor @ctor
+
+-- See Note [Uncluttering type signatures]
+instance {-# OVERLAPPING #-} AsConstructor ctor Void Void where
+  _Ctor = undefined
 
 type family ErrorUnless (ctor :: Symbol) (s :: Type) (contains :: Bool) :: Constraint where
   ErrorUnless ctor s 'False

@@ -32,6 +32,7 @@ module Data.Generics.Product.Positions
   ) where
 
 import Data.Generics.Internal.Lens
+import Data.Generics.Internal.Void
 import Data.Generics.Product.Internal.Positions
 
 import Data.Kind      (Constraint, Type)
@@ -94,6 +95,10 @@ instance
   ) => HasPosition i a s where
 
   position = ravel (repLens . gposition @1 @i)
+
+-- See Note [Uncluttering type signatures]
+instance {-# OVERLAPPING #-} HasPosition f Void Void where
+  position = undefined
 
 type family ErrorUnless (i :: Nat) (s :: Type) (hasP :: Bool) :: Constraint where
   ErrorUnless i s 'False

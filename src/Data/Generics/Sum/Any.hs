@@ -88,3 +88,4 @@ instance AsConstructor ctor a s => AsAny ctor a s where
 
 instance AsType a s => AsAny a a s where
   _As = _Typed @a
+

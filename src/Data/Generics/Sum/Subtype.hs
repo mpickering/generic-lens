@@ -27,6 +27,7 @@ module Data.Generics.Sum.Subtype
   ) where
 
 import Data.Generics.Internal.Lens
+import Data.Generics.Internal.Void
 import Data.Generics.Sum.Internal.Subtype
 
 import GHC.Generics (Generic (Rep, to, from))
@@ -106,3 +107,11 @@ instance
 
   injectSub  = to . ginjectSub . from
   projectSub = either (Left . to) (Right . to) . gprojectSub . from
+
+-- See Note [Uncluttering type signatures]
+instance {-# OVERLAPPING #-} AsSubtype a Void where
+  injectSub = undefined
+  projectSub = undefined
+instance {-# OVERLAPPING #-} AsSubtype Void a where
+  injectSub = undefined
+  projectSub = undefined

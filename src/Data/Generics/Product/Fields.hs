@@ -34,6 +34,7 @@ module Data.Generics.Product.Fields
 
 import Data.Generics.Internal.Families
 import Data.Generics.Internal.Lens
+import Data.Generics.Internal.Void
 import Data.Generics.Product.Internal.Fields
 
 import Data.Kind    (Constraint, Type)
@@ -87,6 +88,10 @@ instance  -- see Note [Changing type parameters]
   ) => HasField field s t a b where
 
   field f s = ravel (repLens . gfield @field) f s
+
+-- See Note [Uncluttering type signatures]
+instance {-# OVERLAPPING #-} HasField f Void Void Void Void where
+  field = undefined
 
 type family ErrorUnless (field :: Symbol) (s :: Type) (contains :: Bool) :: Constraint where
   ErrorUnless field s 'False
@@ -147,21 +152,4 @@ type family IsParam a where
 
 type family IndexOf a where
   IndexOf (P i a) = i
-
-{-
-  Note [Uncluttering type signatures]
-  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  Because the @HasField s t a b@ instance above always matches, the constraint
-  @HasField s t a b@ is replaced by the constraints of the instance, resulting
-  in large, unreadable types.
-
-  This instance stops this from happening, because @HasField s t a b@ can now
-  potentially match this instance, so GHC doesn't expand the nasty constraints.
-
-  TODO: do this for the other classes too
--}
-data Void
-instance {-# OVERLAPPING #-} HasField "" Void Void Void Void where
-  field = id
 

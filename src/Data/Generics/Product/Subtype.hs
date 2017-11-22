@@ -33,6 +33,7 @@ module Data.Generics.Product.Subtype
   ) where
 
 import Data.Generics.Internal.Lens
+import Data.Generics.Internal.Void
 import Data.Generics.Product.Internal.Subtype
 
 import GHC.Generics (Generic (Rep, to, from) )
@@ -94,11 +95,18 @@ class Subtype sup sub where
 
   {-# MINIMAL super | smash, upcast #-}
 
+-- TODO: improve type error by showing a diff of fields
 instance
-  ( GSmash (Rep a) (Rep b)
-  , GUpcast (Rep a) (Rep b)
-  , Generic a
+  ( Generic a
   , Generic b
+  , GSmash (Rep a) (Rep b)
+  , GUpcast (Rep a) (Rep b)
   ) => Subtype b a where
     smash p b = to $ gsmash (from p) (from b)
     upcast    = to . gupcast . from
+
+-- See Note [Uncluttering type signatures]
+instance {-# OVERLAPPING #-} Subtype a Void where
+  super = undefined
+instance {-# OVERLAPPING #-} Subtype Void a where
+  super = undefined
