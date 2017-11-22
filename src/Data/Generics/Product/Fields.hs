@@ -1,13 +1,13 @@
 {-# LANGUAGE AllowAmbiguousTypes     #-}
+{-# LANGUAGE ConstraintKinds         #-}
 {-# LANGUAGE DataKinds               #-}
 {-# LANGUAGE FlexibleInstances       #-}
 {-# LANGUAGE FunctionalDependencies  #-}
-{-# LANGUAGE KindSignatures          #-}
 {-# LANGUAGE MultiParamTypeClasses   #-}
-{-# LANGUAGE PolyKinds               #-}
 {-# LANGUAGE ScopedTypeVariables     #-}
 {-# LANGUAGE TypeApplications        #-}
 {-# LANGUAGE TypeFamilies            #-}
+{-# LANGUAGE TypeInType              #-}
 {-# LANGUAGE TypeOperators           #-}
 {-# LANGUAGE UndecidableInstances    #-}
 {-# LANGUAGE UndecidableSuperClasses #-}
@@ -38,7 +38,8 @@ import Data.Generics.Product.Internal.Fields
 
 import Data.Kind    (Constraint, Type)
 import GHC.Generics
-import GHC.TypeLits (Symbol, ErrorMessage(..), TypeError)
+import GHC.TypeLits (Symbol, ErrorMessage(..), TypeError, Nat, type (+))
+import Data.Type.Bool (If)
 
 --  $example
 --  @
@@ -70,68 +71,23 @@ class HasField (field :: Symbol) s t a b | s field b -> t, s field -> a where
   --  Human {name = "Tamas", age = 50, address = "London"}
   field :: Lens s t a b
 
-class GChange field s t a b | field s b -> t
-instance
-  ( Generic s
-  , Generic t
-  , t ~ Match field s (Replace field (Rep s) b) (AllParams s b)
-  ) => GChange field s t a b
+type GHasField' field s a = GHasField field s s a a
 
-instance
-  ( Generic s
+instance  -- see Note [Changing type parameters]
+  ( Generic s'
+  , Generic s
   , Generic t
-  , GHasField field (Rep s) (Rep s) a a -- get `a`
-  , GChange field s t a b
+  , s' ~ Proxied s
+  , GHasField' field (Rep s) a
+  , GHasField' field (Rep s') a'
   , GHasField field (Rep s) (Rep t) a b
+  , ix ~ IndexOf a'
+  , '(t', b') ~ If (IsParam a') '(Change s' ix b, P ix b) '(s', b)
+  , t ~ UnProxied t'
   , ErrorUnless field s (HasTotalFieldP field (Rep s))
   ) => HasField field s t a b where
 
-  field = ravel (repLens . gfield @field)
-
-type family IfEq a b t e where
-  IfEq a a t _ = t
-  IfEq a _ _ e = e
-
--- map . flip ($)
-type family MapApp (a :: k) (cs :: [k -> j]) :: [j] where
-  MapApp _ '[] = '[]
-  MapApp a (c ': cs) = c a ': MapApp a cs
-
--- | Replace all type parameters one-by-one
---
--- >>> :kind! AllParams  (Test Int String) Bool
---
--- AllParams  (Test Int String) Bool :: [*]
--- = '[Test Int Bool, Test Bool String, Test Int String]
-type family AllParams (s :: k) (b :: Type) :: [k] where
-  AllParams (s x) b = s b ': MapApp x (AllParams s b)
-  AllParams s _ = '[s]
-
--- | Replace the type of a field in the generic rep
-type family Replace (field :: Symbol) (f :: Type -> Type) (b :: Type) :: Type -> Type where
-  Replace field (S1 ('MetaSel ('Just field) c f p) (Rec0 _)) b
-    = S1 ('MetaSel ('Just field) c f p) (Rec0 b)
-  Replace field (l :*: r) b
-    = Replace field l b :*: Replace field r b
-  Replace field (l :+: r) b
-    = Replace field l b :+: Replace field r b
-  Replace field (C1 m f) b
-    = C1 m (Replace field f b)
-  Replace field (D1 m f) b
-    = D1 m (Replace field f b)
-  Replace _ f _
-    = f
-
-type family Match field s (rep :: Type -> Type) (bs :: [Type]) :: Type where
-  Match field s rep (b ': bs) = IfEq rep (Rep b) b (Match field s rep bs)
-  Match field s rep '[]
-    = TypeError
-        (     'Text "The type of "
-        ':<>: 'Text field
-        ':<>: 'Text " is not a parameter of "
-        ':$$: 'ShowType s
-        ':$$: 'Text "therefore its type can't be changed."
-        )
+  field f s = ravel (repLens . gfield @field) f s
 
 type family ErrorUnless (field :: Symbol) (s :: Type) (contains :: Bool) :: Constraint where
   ErrorUnless field s 'False
@@ -144,3 +100,69 @@ type family ErrorUnless (field :: Symbol) (s :: Type) (contains :: Bool) :: Cons
 
   ErrorUnless _ _ 'True
     = ()
+
+{-
+  Note [Changing type parameters]
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  To get good type inference for type-changing lenses, we want to be able
+  map the field's type back to the type argument it corresponds to. This way,
+  when the field is changed, we know what the result type of the structure is
+  going to be.
+
+  However, for a given type @t@, its representation @Rep t@ forgets which types
+  in the structure came from type variables, and which didn't. An @Int@ that
+  results from the instantiation of the type paremeter and an @Int@ that was
+  monomorphically specified in the structure are indistinguishable.
+
+  The solution is to replace the type arguments in the type with unique
+  proxies, like: @T a b@ -> @T (P 1 a) (P 0 b)@. This way, if looking up
+  a field's type yields something of shape @P _ _@, we know it came from a type
+  parameter, and also know which.
+
+  If the field's type is a proxy, then its type is allowed to change, otherwise
+  not. This also allows us to satisfy the functional dependency @s field b -> t@.
+  If after doing the conversion on @s@, @field@'s type is @(P _ a), then @t@ is
+  @s[b/a]@, otherwise @t ~ s@ and @b ~ a@.
+-}
+data P (i :: Nat) a
+
+type Proxied t = Proxied' t 0
+
+type family Proxied' (t :: k) (next :: Nat) :: k where
+  Proxied' (t a :: k) next = (Proxied' t (next + 1)) (P next a)
+  Proxied' t _ = t
+
+type family UnProxied (t :: k) :: k where
+  UnProxied (t (P _ a) :: k) = UnProxied t a
+  UnProxied t = t
+
+type family Change (t :: k) (target :: Nat) (to :: j) :: k where
+  Change (t (P target _) :: k) target to = t (P target to)
+  Change (t a :: k) target to = Change t target to a
+  Change t _ _ = t
+
+type family IsParam a where
+  IsParam (P _ _) = 'True
+  IsParam _ = 'False
+
+type family IndexOf a where
+  IndexOf (P i a) = i
+
+{-
+  Note [Uncluttering type signatures]
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Because the @HasField s t a b@ instance above always matches, the constraint
+  @HasField s t a b@ is replaced by the constraints of the instance, resulting
+  in large, unreadable types.
+
+  This instance stops this from happening, because @HasField s t a b@ can now
+  potentially match this instance, so GHC doesn't expand the nasty constraints.
+
+  TODO: do this for the other classes too
+-}
+data Void
+instance {-# OVERLAPPING #-} HasField "" Void Void Void Void where
+  field = id
+
