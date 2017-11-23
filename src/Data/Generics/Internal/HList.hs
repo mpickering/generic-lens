@@ -26,6 +26,7 @@ module Data.Generics.Internal.HList
   , ListTuple (..)
 
   , GCollectible (..)
+  , HList (..)
   ) where
 
 import Data.Kind (Type)
