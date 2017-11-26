@@ -1,10 +1,11 @@
-{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE AllowAmbiguousTypes    #-}
+{-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE KindSignatures         #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE Rank2Types             #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeFamilies           #-}
@@ -26,6 +27,7 @@
 
 module Data.Generics.Product.Internal.Fields
   ( GHasField (..)
+  , GHasField'
   ) where
 
 import Data.Generics.Internal.Families
@@ -39,6 +41,8 @@ import GHC.TypeLits (Symbol)
 --  "GHC.Generics".
 class GHasField (field :: Symbol) (s :: Type -> Type) (t :: Type -> Type) a b | s field -> a, t field -> b where
   gfield :: Lens (s x) (t x) a b
+
+type GHasField' field s a = GHasField field s s a a
 
 instance GProductHasField field l r l' r' a b (HasTotalFieldP field l)
       => GHasField field (l :*: r) (l' :*: r') a b where

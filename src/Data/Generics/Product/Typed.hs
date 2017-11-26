@@ -26,7 +26,7 @@
 module Data.Generics.Product.Typed
   ( -- *Lenses
     --
-    --  $example
+    --  $setup
     HasType (..)
   ) where
 
@@ -39,23 +39,22 @@ import Data.Kind    (Constraint, Type)
 import GHC.Generics (Generic (Rep))
 import GHC.TypeLits (TypeError, ErrorMessage (..))
 
---  $example
---  @
---    module Example where
---
---    import Data.Generics.Product
---    import GHC.Generics
---
---    data Human = Human
---      { name    :: String
---      , age     :: Int
---      , address :: String
---      }
---      deriving (Generic, Show)
---
---    human :: Human
---    human = Human \"Tunyasz\" 50 \"London\"
---  @
+-- $setup
+-- >>> :set -XTypeApplications
+-- >>> :set -XDataKinds
+-- >>> :set -XDeriveGeneric
+-- >>> import GHC.Generics
+-- >>> :m +Data.Generics.Internal.Lens
+-- >>> :{
+-- data Human = Human
+--   { name    :: String
+--   , age     :: Int
+--   , address :: String
+--   }
+--   deriving (Generic, Show)
+-- human :: Human
+-- human = Human "Tunyasz" 50 "London"
+-- :}
 
 -- |Records that have a field with a unique type.
 class HasType a s where

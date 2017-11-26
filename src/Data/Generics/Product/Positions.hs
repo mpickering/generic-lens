@@ -29,8 +29,12 @@
 module Data.Generics.Product.Positions
   ( -- *Lenses
 
-    --  $example
+    --  $setup
     HasPosition (..)
+  , HasPosition'
+
+  , getPosition
+  , setPosition
   ) where
 
 import Data.Generics.Internal.Lens
@@ -43,23 +47,23 @@ import Data.Type.Bool (type (&&), If)
 import GHC.Generics
 import GHC.TypeLits   (type (<=?),  Nat, TypeError, ErrorMessage(..))
 
---  $example
---  @
---    module Example where
---
---    import Data.Generics.Product
---    import GHC.Generics
---
---    data Human = Human
---      { name    :: String
---      , age     :: Int
---      , address :: String
---      }
---      deriving (Generic, Show)
---
---    human :: Human
---    human = Human \"Tunyasz\" 50 \"London\"
---  @
+-- $setup
+-- >>> :set -XTypeApplications
+-- >>> :set -XDataKinds
+-- >>> :set -XDeriveGeneric
+-- >>> import GHC.Generics
+-- >>> :m +Data.Generics.Internal.Lens
+-- >>> :m +Data.Function
+-- >>> :{
+-- data Human = Human
+--   { name    :: String
+--   , age     :: Int
+--   , address :: String
+--   }
+--   deriving (Generic, Show)
+-- human :: Human
+-- human = Human "Tunyasz" 50 "London"
+-- :}
 
 -- |Records that have a field at a given position.
 class HasPosition (i :: Nat) s t a b | s i -> a, s i b -> t where
@@ -68,11 +72,17 @@ class HasPosition (i :: Nat) s t a b | s i -> a, s i b -> t where
   --
   --  >>> human ^. position @1
   --  "Tunyasz"
-  --  >>> human & position @2 .~ "Berlin"
+  --  >>> human & position @3 .~ "Berlin"
   --  Human {name = "Tunyasz", age = 50, address = "Berlin"}
   position :: Lens s t a b
 
-type GHasPosition' i s a = GHasPosition 1 i s s a a
+type HasPosition' i s a = HasPosition i s s a a
+
+getPosition :: forall i s a. HasPosition' i s a => s -> a
+getPosition s = s ^. position @i
+
+setPosition :: forall i s a. HasPosition' i s a => a -> s -> s
+setPosition = set (position @i)
 
 instance  -- see Note [Changing type parameters]
   ( Generic s

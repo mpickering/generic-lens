@@ -28,7 +28,7 @@
 module Data.Generics.Product.Subtype
   ( -- *Lenses
     --
-    --  $example
+    --  $setup
     Subtype (..)
   ) where
 
@@ -38,27 +38,28 @@ import Data.Generics.Product.Internal.Subtype
 
 import GHC.Generics (Generic (Rep, to, from) )
 
---  $example
---  @
---     module Example where
---
---     import Data.Generics.Product
---     import GHC.Generics
---
---     data Human = Human
---       { name    :: String
---       , age     :: Int
---       , address :: String
---       } deriving (Generic, Show)
---
---     data Animal = Animal
---       { name    :: String
---       , age     :: Int
---       } deriving (Generic, Show)
---
---     human :: Human
---     human = Human \"Tunyasz\" 50 \"London\"
---  @
+-- $setup
+-- >>> :set -XTypeApplications
+-- >>> :set -XDataKinds
+-- >>> :set -XDeriveGeneric
+-- >>> :set -XDuplicateRecordFields
+-- >>> import GHC.Generics
+-- >>> :m +Data.Generics.Internal.Lens
+-- >>> :{
+-- data Human = Human
+--   { name    :: String
+--   , age     :: Int
+--   , address :: String
+--   }
+--   deriving (Generic, Show)
+-- data Animal = Animal
+--   { name    :: String
+--   , age     :: Int
+--   }
+--   deriving (Generic, Show)
+-- human :: Human
+-- human = Human "Tunyasz" 50 "London"
+-- :}
 
 -- |Structural subtype relationship
 --

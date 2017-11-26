@@ -25,7 +25,7 @@
 module Data.Generics.Product.Any
   ( -- *Lenses
     --
-    --  $example
+    --  $setup
     HasAny (..)
   ) where
 
@@ -34,23 +34,22 @@ import Data.Generics.Product.Fields
 import Data.Generics.Product.Positions
 import Data.Generics.Product.Typed
 
---  $example
---  @
---    module Example where
---
---    import Data.Generics.Product
---    import GHC.Generics
---
---    data Human = Human
---      { name    :: String
---      , age     :: Int
---      , address :: String
---      }
---      deriving (Generic, Show)
---
---    human :: Human
---    human = Human \"Tunyasz\" 50 \"London\"
---  @
+-- $setup
+-- >>> :set -XTypeApplications
+-- >>> :set -XDataKinds
+-- >>> :set -XDeriveGeneric
+-- >>> import GHC.Generics
+-- >>> :m +Data.Generics.Internal.Lens
+-- >>> :{
+-- data Human = Human
+--   { name    :: String
+--   , age     :: Int
+--   , address :: String
+--   }
+--   deriving (Generic, Show)
+-- human :: Human
+-- human = Human "Tunyasz" 50 "London"
+-- :}
 
 -- |Records that have generic lenses.
 class HasAny (sel :: k) s t a b | s sel k -> a, s sel k b -> t where

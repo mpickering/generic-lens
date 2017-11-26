@@ -16,10 +16,13 @@
 -----------------------------------------------------------------------------
 module Data.Generics.Internal.Lens where
 
-import Control.Applicative   (Const(..))
-import Data.Functor.Identity (Identity(..))
-import Data.Profunctor       (Choice(right'), Profunctor(dimap))
-import GHC.Generics          ((:*:)(..), (:+:)(..), Generic(..), M1(..), Rep)
+import Control.Applicative    (Const(..))
+import Data.Functor.Identity  (Identity(..))
+import Data.Monoid            (First (..))
+import Data.Profunctor        (Choice(right'), Profunctor(dimap))
+import Data.Profunctor.Unsafe ((#.), (.#))
+import Data.Tagged
+import GHC.Generics           ((:*:)(..), (:+:)(..), Generic(..), M1(..), Rep)
 
 -- | Type alias for lens
 type Lens' s a
@@ -47,6 +50,19 @@ infixl 8 ^.
 set :: ((a -> Identity b) -> s -> Identity t) -> b -> s -> t
 set l b
   = runIdentity . l (\_ -> Identity b)
+
+infixr 4 .~
+(.~) :: ((a -> Identity b) -> s -> Identity t) -> b -> s -> t
+(.~) = set
+
+infixl 8 ^?
+(^?) :: s -> ((a -> Const (First a) a) -> s -> Const (First a) s) -> Maybe a
+s ^? l = getFirst (fmof l (First #. Just) s)
+  where fmof l' f = getConst #. l' (Const #. f)
+
+infixr 8 #
+(#) :: (Tagged b (Identity b) -> Tagged t (Identity t)) -> b -> t
+(#) p = runIdentity #. unTagged #. p .# Tagged .# Identity
 
 -- | Lens focusing on the first element of a product
 first :: Lens ((a :*: b) x) ((a' :*: b) x) (a x) (a' x)

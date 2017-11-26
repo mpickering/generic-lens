@@ -1,5 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes    #-}
+{-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE KindSignatures         #-}
@@ -26,6 +28,7 @@
 
 module Data.Generics.Product.Internal.Positions
   ( GHasPosition (..)
+  , GHasPosition'
   , type (<?)
   , Size
   ) where
@@ -41,6 +44,8 @@ import GHC.TypeLits   (type (<=?), type (+), Nat)
 --  "GHC.Generics".
 class GHasPosition (offset :: Nat) (i :: Nat) (s :: Type -> Type) (t :: Type -> Type) a b | s offset i -> a, s t offset i -> b where
   gposition :: Lens (s x) (t x) a b
+
+type GHasPosition' i s a = GHasPosition 1 i s s a a
 
 instance GHasPosition i i (K1 R a) (K1 R b) a b where
   gposition f (K1 x) = fmap K1 (f x)

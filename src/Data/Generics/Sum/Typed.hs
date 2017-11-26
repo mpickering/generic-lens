@@ -25,7 +25,7 @@
 module Data.Generics.Sum.Typed
   ( -- *Prisms
     --
-    --  $example
+    --  $setup
     AsType (..)
   ) where
 
@@ -38,34 +38,32 @@ import Data.Generics.Internal.Families
 import Data.Generics.Internal.Lens
 import Data.Generics.Internal.Void
 
---  $example
---  @
---    module Example where
---
---    import Data.Generics.Sum
---    import GHC.Generics
---
---    data Animal
---      = Dog Dog
---      | Cat Name Age
---      | Duck Age
---      deriving (Generic, Show)
---
---    data Dog = MkDog
---      { name :: Name
---      , age  :: Age
---      }
---      deriving (Generic, Show)
---
---    type Name = String
---    type Age  = Int
---
---    dog, cat, duck :: Animal
---
---    dog = Dog (MkDog "Shep" 3)
---    cat = Cat "Mog" 5
---    duck = Duck 2
---  @
+-- $setup
+-- >>> :set -XTypeApplications
+-- >>> :set -XDataKinds
+-- >>> :set -XDeriveGeneric
+-- >>> import GHC.Generics
+-- >>> :m +Data.Generics.Internal.Lens
+-- >>> :{
+-- data Animal
+--   = Dog Dog
+--   | Cat Name Age
+--   | Duck Age
+--   deriving (Generic, Show)
+-- data Dog
+--   = MkDog
+--   { name :: Name
+--   , age  :: Age
+--   }
+--   deriving (Generic, Show)
+-- type Name = String
+-- type Age  = Int
+-- dog, cat, duck :: Animal
+-- dog = Dog (MkDog "Shep" 3)
+-- cat = Cat "Mog" 5
+-- duck = Duck 2
+-- :}
+
 
 -- |Sums that have a constructor with a field of the given type.
 class AsType a s where

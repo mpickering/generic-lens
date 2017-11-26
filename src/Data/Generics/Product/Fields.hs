@@ -28,8 +28,12 @@
 module Data.Generics.Product.Fields
   ( -- *Lenses
 
-    --  $example
+    --  $setup
     HasField (..)
+  , HasField'
+
+  , getField
+  , setField
   ) where
 
 import Data.Generics.Internal.Families
@@ -42,23 +46,23 @@ import GHC.Generics
 import GHC.TypeLits (Symbol, ErrorMessage(..), TypeError)
 import Data.Type.Bool (If)
 
---  $example
---  @
---    module Example where
---
---    import Data.Generics.Product
---    import GHC.Generics
---
---    data Human = Human
---      { name    :: String
---      , age     :: Int
---      , address :: String
---      }
---      deriving (Generic, Show)
---
---    human :: Human
---    human = Human \"Tunyasz\" 50 \"London\"
---  @
+-- $setup
+-- >>> :set -XTypeApplications
+-- >>> :set -XDataKinds
+-- >>> :set -XDeriveGeneric
+-- >>> import GHC.Generics
+-- >>> :m +Data.Generics.Internal.Lens
+-- >>> :m +Data.Function
+-- >>> :{
+-- data Human = Human
+--   { name    :: String
+--   , age     :: Int
+--   , address :: String
+--   }
+--   deriving (Generic, Show)
+-- human :: Human
+-- human = Human "Tunyasz" 50 "London"
+-- :}
 
 -- TODO: this is a breaking change
 -- |Records that have a field with a given name.
@@ -72,7 +76,13 @@ class HasField (field :: Symbol) s t a b | s field b -> t, s field -> a where
   --  Human {name = "Tamas", age = 50, address = "London"}
   field :: Lens s t a b
 
-type GHasField' field s a = GHasField field s s a a
+type HasField' field s a = HasField field s s a a
+
+getField :: forall f s a. HasField' f s a => s -> a
+getField s = s ^. field @f
+
+setField :: forall f s a. HasField' f s a => a -> s -> s
+setField = set (field @f)
 
 instance  -- see Note [Changing type parameters]
   ( Generic s
