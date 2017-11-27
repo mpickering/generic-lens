@@ -50,21 +50,23 @@ import Data.Type.Bool (If)
 -- >>> :set -XTypeApplications
 -- >>> :set -XDataKinds
 -- >>> :set -XDeriveGeneric
+-- >>> :set -XGADTs
+-- >>> :set -XFlexibleContexts
 -- >>> import GHC.Generics
 -- >>> :m +Data.Generics.Internal.Lens
 -- >>> :m +Data.Function
 -- >>> :{
--- data Human = Human
+-- data Human a = Human
 --   { name    :: String
 --   , age     :: Int
 --   , address :: String
+--   , other   :: a
 --   }
 --   deriving (Generic, Show)
--- human :: Human
--- human = Human "Tunyasz" 50 "London"
+-- human :: Human Bool
+-- human = Human { name = "Tunyasz", age = 50, address = "London", other = False }
 -- :}
 
--- TODO: this is a breaking change
 -- |Records that have a field with a given name.
 class HasField (field :: Symbol) s t a b | s field b -> t, s field -> a where
   -- |A lens that focuses on a field with a given name. Compatible with the
@@ -72,15 +74,27 @@ class HasField (field :: Symbol) s t a b | s field b -> t, s field -> a where
   --
   --  >>> human ^. field @"age"
   --  50
-  --  >>> human & field @"name" .~ "Tamas"
-  --  Human {name = "Tamas", age = 50, address = "London"}
+  --
+  -- If the field's type comes from a type parameter, it can be changed:
+  --  >>> :t human
+  --  human :: Human Bool
+  --  >>> :t human & field @"other" .~ 42
+  --  human & field @"other" .~ 42 :: Num b => Human b
+  --  >>> human & field @"other" .~ 42
+  --  Human {name = "Tunyasz", age = 50, address = "London", other = 42}
   field :: Lens s t a b
 
 type HasField' field s a = HasField field s s a a
 
+-- |
+-- >>> getField @"age" human
+-- 50
 getField :: forall f s a. HasField' f s a => s -> a
 getField s = s ^. field @f
 
+-- |
+-- >>> setField @"age" 60 human
+-- Human {name = "Tunyasz", age = 60, address = "London", other = False}
 setField :: forall f s a. HasField' f s a => a -> s -> s
 setField = set (field @f)
 
