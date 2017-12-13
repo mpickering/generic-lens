@@ -1,14 +1,16 @@
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE KindSignatures        #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE AllowAmbiguousTypes    #-}
+{-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE DeriveGeneric          #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE KindSignatures         #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE ScopedTypeVariables    #-}
+{-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeOperators          #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -32,9 +34,10 @@ module Data.Generics.Product.Types
 
 --import Data.Generics.Internal.Families
 import Data.Generics.Internal.Lens
+import Data.Generics.Internal.HList
 import Data.Generics.Product.Internal.Types
 
---import Data.Kind    (Constraint, Type)
+import Data.Kind    (Constraint, Type)
 import GHC.Generics (Generic (Rep), from, to)
 import Boggle
 --import GHC.TypeLits (TypeError, ErrorMessage (..))
@@ -49,3 +52,31 @@ instance
 
   types f s = lowerBoggle (to <$> gtypes f (from s))
 
+
+class HasTypes2 f s fs where
+  types2 :: Applicative f => fs -> s -> f s
+
+instance
+  ( Generic s
+  , GHasTypes2 (Rep s) ts f
+  , ListTuple fs (Functions ts f)
+  , Functions ts f ~ TupleToList fs
+  ) => HasTypes2 f s fs where
+
+  types2 fs s = lowerBoggle (to <$> gtypes2 @_ @ts (tupleToList fs) (from s))
+
+-- TODO: delete these eventually
+data Test
+  = Test Int Int String Char Char deriving (Generic, Show)
+
+inty :: Int -> Maybe Int
+inty = Just . (+1)
+
+stringy :: String -> Maybe String
+stringy = Just . (++"!")
+
+-- >>> types2 inty (Test 10 20 "hello" 'a' 'b')
+-- Just (Test 11 21 "hello" 'a' 'b')
+--
+-- >>> types2 (inty, stringy) (Test 10 20 "hello" 'a' 'b')
+-- Just (Test 11 21 "hello!" 'a' 'b')

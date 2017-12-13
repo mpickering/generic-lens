@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE AllowAmbiguousTypes   #-}
@@ -27,6 +28,9 @@
 
 module Data.Generics.Product.Internal.Types
   ( GHasTypes (..)
+  , GHasTypes2 (..)
+
+  , Functions -- TODO: don't export this
   ) where
 
 import Data.Kind    (Type, Constraint)
@@ -66,11 +70,11 @@ instance GHasTypes f a => GHasTypes (M1 m meta f) a where
 --------------------------------------------------------------------------------
 
 class GHasTypes2 (f :: Type -> Type) (as :: [Type]) g where
-  gtypes2 :: forall x. Applicative g => Functions as g -> f x -> Boggle g (f x)
+  gtypes2 :: forall x. Applicative g => HList (Functions as g) -> f x -> Boggle g (f x)
 
-type family Functions (ts :: [Type]) (g :: Type -> Type) where
-  Functions '[] _ = HList '[]
-  Functions (t ': ts) g = HList ((t -> g t) ': ts)
+type family Functions (ts :: [Type]) (g :: Type -> Type) = r | r -> ts where
+  Functions '[] _ = '[]
+  Functions (t ': ts) g = ((t -> g t) ': Functions ts g)
 
 instance (GHasTypes2 l as g, GHasTypes2 r as g) => GHasTypes2 (l :*: r) as g where
   gtypes2 f (l :*: r) = (:*:) <$> gtypes2 @_ @as f l <*> gtypes2 @_ @as f r
@@ -79,8 +83,20 @@ instance (GHasTypes2 l as g, GHasTypes2 r as g) => GHasTypes2 (l :*: r) as g whe
 -- TODO:
 -- instance (GHasTypes2 l a, GHasTypes2 r a) => GHasTypes2 (l :+: r) a where
 
-instance Find a as g => GHasTypes2 (K1 R a) as g where
+instance Find a (Functions as g) g => GHasTypes2 (K1 R a) as g where
   gtypes2 fs k = stuff fs k
+  {-# INLINE gtypes2 #-}
+
+instance GHasTypes2 t as g => GHasTypes2 (D1 m t) as g where
+  gtypes2 fs (M1 x) = M1 <$> gtypes2 @_ @as fs x
+  {-# INLINE gtypes2 #-}
+
+instance GHasTypes2 t as g => GHasTypes2 (C1 m t) as g where
+  gtypes2 fs (M1 x) = M1 <$> gtypes2 @_ @as fs x
+  {-# INLINE gtypes2 #-}
+
+instance GHasTypes2 t as g => GHasTypes2 (S1 m t) as g where
+  gtypes2 fs (M1 x) = M1 <$> gtypes2 @_ @as fs x
   {-# INLINE gtypes2 #-}
 
 class Find t (ts :: [Type]) g where
@@ -94,44 +110,3 @@ instance Find t ts g => Find t (x ': ts) g where
 
 instance Find t '[] g where
   stuff _ k = pure k
-
---instance {-# OVERLAPS #-} GHasTypes2 (K1 R b) a b where
---  gtypes2 _ g (K1 x) = fmap K1 (liftBoggle (g x))
---  {-# INLINE gtypes2 #-}
---
---instance {-# OVERLAPS #-} GHasTypes2 (K1 R a) b b' where
---  gtypes2 _ _ k = pure k
---  {-# INLINE gtypes2 #-}
---
---instance GHasTypes2 f a b => GHasTypes2 (M1 m meta f) a b where
---  gtypes2 f g (M1 x) = M1 <$>  gtypes2 f g x
---  {-# INLINE gtypes2 #-}
---
---data NotEq a b where
---  NotEq :: Neq a b => NotEq a b
---
---type family Neq a b :: Constraint where
---  Neq a a = TypeError ('Text "asd")
---  Neq a b = ()
---
---class HasTypes2 a b s where
---  types2 :: forall g. Applicative g => (a -> g a) -> (b -> g b) -> s -> g s
---
---instance
---  ( Generic s
---  , GHasTypes2 (Rep s) a b
---  ) => HasTypes2 a b s where
---
---  types2 f g s = lowerBoggle (to <$> gtypes2 f g (from s))
---
---data T = T Int String Int String Char deriving (Generic, Show)
---
---newtype Identity a = Identity { runIdentity :: a }
---
---instance Functor Identity where
---  fmap f = Identity . f . runIdentity
---
---instance Applicative Identity where
---  pure = Identity
---  Identity f <*> Identity a = Identity $ f a
---
