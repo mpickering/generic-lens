@@ -61,7 +61,7 @@ library
 
   hs-source-dirs:     src
   default-language:   Haskell2010
-  ghc-options:        -Wall -fsimpl-tick-factor=0 -ddump-simpl-stats -ddump-to-file
+  ghc-options:        -Wall
   if flag(dump-core)
     build-depends: dump-core
     ghc-options: -fplugin=DumpCore -fplugin-opt DumpCore:core-html
