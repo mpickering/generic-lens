@@ -16,12 +16,14 @@
 -----------------------------------------------------------------------------
 
 module Data.Generics.Product
-  ( -- *Lenses
+  ( -- * Lenses
     module Data.Generics.Product.Any
   , module Data.Generics.Product.Fields
   , module Data.Generics.Product.Positions
   , module Data.Generics.Product.Subtype
   , module Data.Generics.Product.Typed
+    -- * Traversals
+  , module Data.Generics.Product.Types
   ) where
 
 import Data.Generics.Product.Any
@@ -29,3 +31,4 @@ import Data.Generics.Product.Fields
 import Data.Generics.Product.Positions
 import Data.Generics.Product.Subtype
 import Data.Generics.Product.Typed
+import Data.Generics.Product.Types

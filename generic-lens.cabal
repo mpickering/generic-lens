@@ -30,6 +30,10 @@ library
                     , Data.Generics.Product.Subtype
                     , Data.Generics.Product.Typed
                     --, Data.Generics.Labels
+                    , Data.Generics.Product.Types
+                    --, Data.Generics.Product.Boggle
+
+                    , Boggle
 
                     , Data.Generics.Sum
                     , Data.Generics.Sum.Any
@@ -53,6 +57,7 @@ library
                     , Data.Generics.Product.Internal.Positions
                     , Data.Generics.Product.Internal.Subtype
                     , Data.Generics.Product.Internal.Typed
+                    , Data.Generics.Product.Internal.Types
 
   build-depends:      base        >= 4.9 && <= 5.0
                     , profunctors >= 5.0 && <= 6.0
@@ -64,7 +69,6 @@ library
   if flag(dump-core)
     build-depends: dump-core
     ghc-options: -fplugin=DumpCore -fplugin-opt DumpCore:core-html
-
 
 source-repository head
   type:               git
@@ -132,3 +136,4 @@ benchmark generic-lens-bench
 
   default-language:   Haskell2010
   ghc-options:        -Wall
+

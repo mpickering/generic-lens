@@ -1,5 +1,5 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE AllowAmbiguousTypes    #-}
+{-# LANGUAGE CPP                    #-}
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE FlexibleContexts       #-}

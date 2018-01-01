@@ -24,8 +24,10 @@ module Data.Generics.Internal.HList
   ( type (++)
 
   , ListTuple (..)
+  , TupleToList
 
   , GCollectible (..)
+  , HList (..)
   ) where
 
 import Data.Kind (Type)
@@ -64,6 +66,27 @@ instance Splittable as bs cs => Splittable (a ': as) bs (a ': cs) where
 
 --------------------------------------------------------------------------------
 -- * Convert tuples to/from HLists
+
+type family TupleToList tuple where
+  TupleToList () = '[]
+  TupleToList (a, b) = '[a, b]
+  TupleToList (a, b, c) = '[a, b, c]
+  TupleToList (a, b, c, d) = '[a, b, c, d]
+  TupleToList (a, b, c, d, e) = '[a, b, c, d, e]
+  TupleToList (a, b, c, d, e, f) = '[a, b, c, d, e, f]
+  TupleToList (a, b, c, d, e, f, g) = '[a, b, c, d, e, f, g]
+  TupleToList (a, b, c, d, e, f, g, h) = '[a, b, c, d, e, f, g, h]
+  TupleToList (a, b, c, d, e, f, g, h, j) = '[a, b, c, d, e, f, g, h, j]
+  TupleToList (a, b, c, d, e, f, g, h, j, k) = '[a, b, c, d, e, f, g, h, j, k]
+  TupleToList (a, b, c, d, e, f, g, h, j, k, l) = '[a, b, c, d, e, f, g, h, j, k, l]
+  TupleToList (a, b, c, d, e, f, g, h, j, k, l, m) = '[a, b, c, d, e, f, g, h, j, k, l, m]
+  TupleToList (a, b, c, d, e, f, g, h, j, k, l, m, n) = '[a, b, c, d, e, f, g, h, j, k, l, m, n]
+  TupleToList (a, b, c, d, e, f, g, h, j, k, l, m, n, o) = '[a, b, c, d, e, f, g, h, j, k, l, m, n, o]
+  TupleToList (a, b, c, d, e, f, g, h, j, k, l, m, n, o, p) = '[a, b, c, d, e, f, g, h, j, k, l, m, n, o, p]
+  TupleToList (a, b, c, d, e, f, g, h, j, k, l, m, n, o, p, q) = '[a, b, c, d, e, f, g, h, j, k, l, m, n, o, p, q]
+  TupleToList (a, b, c, d, e, f, g, h, j, k, l, m, n, o, p, q, r) = '[a, b, c, d, e, f, g, h, j, k, l, m, n, o, p, q, r]
+  TupleToList (a, b, c, d, e, f, g, h, j, k, l, m, n, o, p, q, r, s) = '[a, b, c, d, e, f, g, h, j, k, l, m, n, o, p, q, r, s]
+  TupleToList a = '[a]
 
 class ListTuple (tuple :: Type) (as :: [Type]) | as -> tuple where
   type ListToTuple as :: Type

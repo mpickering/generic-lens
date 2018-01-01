@@ -14,6 +14,8 @@ module Main where
 
 import GHC.Generics
 import Data.Generics.Product
+import Data.Generics.Product.Boggle
+import Data.Generics.Product.Types
 import Test.Inspection
 
 main :: IO ()
@@ -33,11 +35,23 @@ data Record3 a = MkRecord3
   , fieldB :: Bool
   } deriving (Generic, Show)
 
+data Record3 = MkRecord3
+  { fieldA :: Int
+  , fieldB :: Int
+  , fieldC :: String
+  , fieldD :: Int
+  , fieldE :: Char
+  , fieldF :: Int
+  } deriving Generic
+
+data Record4 a = MkRecord4
+  { fieldA :: a
+  , fieldB :: a
+  } deriving (Generic1)
+
 type Lens' s a = Lens s s a a
 type Lens s t a b = forall f. Functor f => (a -> f b) -> s -> f t
-
-fieldALensManual :: Lens' Record Int
-fieldALensManual f (MkRecord a b) = (\a' -> MkRecord a' b) <$> f a
+type Traversal' s a = forall f. Applicative f => (a -> f a) -> s -> f s
 
 typeChangingManual :: Lens (Record3 a) (Record3 b) a b
 typeChangingManual f (MkRecord3 a b) = (\a' -> MkRecord3 a' b) <$> f a
@@ -46,6 +60,20 @@ typeChangingManualCompose :: Lens (Record3 (Record3 a)) (Record3 (Record3 b)) a 
 typeChangingManualCompose = typeChangingManual . typeChangingManual
 
 newtype L s a = L (Lens' s a)
+
+intTraversalManual :: Traversal' Record3 Int
+intTraversalManual f (MkRecord3 a b c d e f') =
+    (\a1 a2 a3 a4 -> MkRecord3 a1 a2 c a3 e a4) <$> f a <*> f b <*> f d <*> f f'
+
+intTraversalDerived :: Traversal' Record3 Int
+intTraversalDerived = types
+
+
+intTraversalDerived3 :: Traversal' (Record4 Int) Int
+intTraversalDerived3 = genericTraverse
+
+fieldALensManual :: Lens' Record Int
+fieldALensManual f (MkRecord a b) = (\a' -> MkRecord a' b) <$> f a
 
 subtypeLensManual :: Lens' Record Record2
 subtypeLensManual f record
@@ -88,3 +116,4 @@ inspect $ 'subtypeLensManual === 'subtypeLensGeneric
 inspect $ 'typeChangingManual === 'typeChangingGeneric
 inspect $ 'typeChangingManual === 'typeChangingGenericPos
 inspect $ 'typeChangingManualCompose === 'typeChangingGenericCompose
+inspect $ 'intTraversalManual === 'intTraversalDerived
